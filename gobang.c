@@ -475,7 +475,7 @@ int read_cmd(void)
 		ch = tm_getch();
 		if (ch == EOF)
 			return 'q';
-	} while (strchr("wasdoqrR", ch) == NULL);
+	} while (strchr("wasdoqrRhjklyubn", ch) == NULL);
 	return ch;
 }
 
@@ -526,9 +526,9 @@ int print_board(struct gb_game *g, int cur_y, int cur_x)
 	printf("HEIGHT: %d  WIDTH: %d\n", g->height, g->width);
 	printf("%s",
 			" KEY BINDINGS\n"
-			"   [w]            [o] place a stone\n"
-			"[a]   [d]  MOVE   [q] quit the game\n"
-			"   [s]            [r] restart the game\n"
+			"<y>[k]<u>         [o] place a stone\n"
+			"[h]   [l]  MOVE   [q] quit the game\n"
+			"<b>[j]<n>         [r] restart the game\n"
 			"                  [R] change the size of board\n"
 	      );
 	puts("");
@@ -550,22 +550,43 @@ int main(void)
 		print_board(g, cur_y, cur_x);
 		cmd = read_cmd();
 
+#define MOVE_UP() if (gb_is_valid_coord(g, cur_y - 1, cur_x)) --cur_y
+#define MOVE_DOWN() if (gb_is_valid_coord(g, cur_y + 1, cur_x)) ++cur_y
+#define MOVE_LEFT() if (gb_is_valid_coord(g, cur_y, cur_x - 1)) --cur_x
+#define MOVE_RIGHT() if (gb_is_valid_coord(g, cur_y, cur_x + 1)) ++cur_x
+
 		switch (cmd) {
+			case 'y':
+				MOVE_UP();
+				MOVE_LEFT();
+				break;
+			case 'u':
+				MOVE_UP();
+				MOVE_RIGHT();
+				break;
+			case 'b':
+				MOVE_DOWN();
+				MOVE_LEFT();
+				break;
+			case 'n':
+				MOVE_DOWN();
+				MOVE_RIGHT();
+				break;
 			case 'w':
-				if (gb_is_valid_coord(g, cur_y - 1, cur_x))
-					--cur_y;
+			case 'k':
+				MOVE_UP();
 				break;
+			case 'j':
 			case 's':
-				if (gb_is_valid_coord(g, cur_y + 1, cur_x))
-					++cur_y;
+				MOVE_DOWN();
 				break;
+			case 'h':
 			case 'a':
-				if (gb_is_valid_coord(g, cur_y, cur_x - 1))
-					--cur_x;
+				MOVE_LEFT();
 				break;
+			case 'l':
 			case 'd':
-				if (gb_is_valid_coord(g, cur_y, cur_x + 1))
-					++cur_x;
+				MOVE_RIGHT();
 				break;
 			case 'q':
 				puts("Game ended");
@@ -588,6 +609,11 @@ int main(void)
 				break;
 		}
 	}
+
+#undef MOVE_UP
+#undef MOVE_DOWN
+#undef MOVE_LEFT
+#undef MOVE_RIGHT
 
 	tm_set();
 	print_board(g, cur_y, cur_x);
